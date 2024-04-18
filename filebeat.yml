@@ -1,0 +1,50 @@
+filebeat.inputs:
+- type: stdin
+  enabled: true
+
+logging:
+  level: debug
+
+processors:
+- decode_json_fields:
+    fields: ["message"]
+    target: "json"
+    overwrite_keys: true
+
+output.elasticsearch:
+  username: "${ES_USERNAME}"
+  password: "${ES_PASSWORD}"
+  hosts: ["${ES_HOSTS:localhost:9200}"]
+  protocol: "https"
+  ssl.certificate_authorities: ["${ES_CA_CERT}"]
+  index: "fake-logs-%{[agent.version]}-%{+yyyy.MM.dd}"
+
+setup.template:
+  name: "my-fake-logs"
+  pattern: "fake-logs-*"
+  settings:
+    index.number_of_shards: 2
+  mappings:
+    properties:
+      json:
+        properties:
+          host:
+            type: "ip"
+          user-identifier:
+            type: "keyword"
+          datetime:
+            type: "date"
+          method:
+            type: "keyword"
+          request:
+            type: "keyword"
+          status:
+            type: "integer"
+          bytes:
+            type: "integer"
+          referer:
+            type: "keyword"
+          user-agent:
+            type: "keyword"
+          summary:
+            type: "text"
